@@ -1,0 +1,6 @@
+client_ID,name,contact_info,property_type,budget
+1,Alice Johnson,alice@example.com,HOUSE, 350000
+2,Bob Miller,bob@example.com,APARTMENT, 250000
+3,Charlie Davis,charlie@example.com,COMMERCIAL, 400000
+4,Diana Wilson,diana@example.com,LAND, 200000
+5,Edward Taylor,edward@example.com,HOUSE, 300000
