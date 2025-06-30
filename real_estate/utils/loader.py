@@ -24,6 +24,7 @@ def load_dataset() -> Tuple[ClientManager, PropertyManager]:
     property_manager = PropertyManager()
 
     # 加载客户端数据
+    # 加载客户端数据
     clients_file = os.path.join(data_dir, "client_requests_dataset.csv")
     print(f"Checking clients file: {clients_file}")
     if not os.path.exists(clients_file):
@@ -33,13 +34,14 @@ def load_dataset() -> Tuple[ClientManager, PropertyManager]:
         with open(clients_file, newline='', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                print(f"Processing client: {row}")
+                # 修改此行，格式化输出具体字段
+                print(f"Processing client: client_ID={row['client_ID']}, name={row['name']}, contact_info={row['contact_info']}, property_type={row['property_type']}, budget={row['budget'].strip()}")
                 client = Client(
                     client_ID=int(row["client_ID"]),
                     name=row["name"],
                     contact_info=row["contact_info"],
                     budget=float(row["budget"].strip()),
-                    property_type=PropertyType[row["property_type"]]  # 确保传递 property_type
+                    property_type=PropertyType[row["property_type"]]
                 )
                 client_manager.add_client(client)
                 print(f"Added client with ID: {client.client_ID}")
@@ -56,7 +58,8 @@ def load_dataset() -> Tuple[ClientManager, PropertyManager]:
         with open(properties_file, newline='', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                print(f"Processing property: {row}")
+                # 修改此行，格式化输出具体字段
+                print(f"Processing property: property_ID={row['property_ID']}, address={row['address']}, price={row['price']}, property_type={row['property_type']}, status={row['status']}")
                 property_obj = Property(
                     property_ID=int(row["property_ID"]),
                     address=row["address"],

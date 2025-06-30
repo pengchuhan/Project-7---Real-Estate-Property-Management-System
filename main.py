@@ -10,11 +10,11 @@ def main():
         client = client_manager.clients.dequeue()  # 直接移除队列顶部的客户端
         print(f"Processing client request: {client}")
 
-        # 获取所有房产
-        properties = list(property_manager.properties.values())
+        # 获取所有房产（中序遍历）
+        properties = property_manager.tree.search_by_price_range(float('-inf'), float('inf'))
 
         # 查找符合预算的房产
-        matches = client_manager.match_properties(properties, client.budget * 0.999, client.budget * 1.001, current=client)
+        matches = client_manager.match_properties(properties, client)
         if matches:
             print(f"Matching properties for client {client.client_ID}:")
             for client_match, matched_properties in matches:
@@ -34,3 +34,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

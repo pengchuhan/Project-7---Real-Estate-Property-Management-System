@@ -2,14 +2,17 @@ import unittest
 from real_estate.managers import PropertyManager
 from real_estate.models import Property, PropertyType, PropertyStatus
 
+
 class TestPropertyManager(unittest.TestCase):
     def setUp(self):
         # 初始化 PropertyManager
         self.property_manager = PropertyManager()
-        # 创建一些房产对象
+
+        # 创建房产对象
         self.property1 = Property(1, "123 Main St", 250000.0, PropertyType.HOUSE, PropertyStatus.AVAILABLE)
         self.property2 = Property(2, "456 Elm St", 300000.0, PropertyType.APARTMENT, PropertyStatus.AVAILABLE)
         self.property3 = Property(3, "789 Oak St", 150000.0, PropertyType.APARTMENT, PropertyStatus.SOLD, owner="John Doe")
+
         # 添加房产到管理器
         self.property_manager.add_property(self.property1)
         self.property_manager.add_property(self.property2)
@@ -19,37 +22,70 @@ class TestPropertyManager(unittest.TestCase):
         """测试添加房产"""
         new_property = Property(4, "101 Pine St", 400000.0, PropertyType.HOUSE, PropertyStatus.AVAILABLE)
         self.property_manager.add_property(new_property)
-        self.assertIn(new_property.property_ID, self.property_manager.properties)
+
+        found = self.property_manager.find_property_by_id(4)
+        self.assertIsNotNone(found)
+        self.assertEqual(found.address, "101 Pine St")
+        self.assertEqual(found.price, 400000.0)
 
     def test_remove_property(self):
         """测试移除房产"""
-        self.property_manager.remove_property(1)
-        self.assertNotIn(1, self.property_manager.properties)
-        self.assertNotIn(1, self.property_manager.tree.get_keys())
+        # 移除存在的房产
+        removed = self.property_manager.remove_property(1)
+        self.assertTrue(removed)
+        self.assertIsNone(self.property_manager.find_property_by_id(1))
+
+        # 移除不存在的房产
+        removed = self.property_manager.remove_property(999)
+        self.assertFalse(removed)
 
     def test_update_status(self):
         """测试更新房产状态"""
         # 设置房产所有者
-        self.property_manager.properties[2].owner = "Bob Smith"
+        property_obj = self.property_manager.find_property_by_id(2)
+        property_obj.owner = "Bob Smith"
+
         # 更新房产状态为 SOLD
-        self.property_manager.update_status(2, PropertyStatus.SOLD)
-        # 检查房产状态是否更新为 SOLD
-        self.assertEqual(self.property_manager.properties[2].status, PropertyStatus.SOLD)
-        # 尝试将已售出的房产状态更新为 AVAILABLE，应抛出 ValueError
+        result = self.property_manager.update_status(2, PropertyStatus.SOLD)
+        self.assertTrue(result)
+        updated_property = self.property_manager.find_property_by_id(2)
+        self.assertEqual(updated_property.status, PropertyStatus.SOLD)
+
+        # 尝试将已售出房产变为 AVAILABLE，应该报错（有owner不允许变AVAILABLE）
         with self.assertRaises(ValueError):
             self.property_manager.update_status(2, PropertyStatus.AVAILABLE)
-        # 尝试将可用房产的所有者设置为 None，应抛出 ValueError
-        self.property_manager.properties[1].owner = None
+
+        # 尝试将 AVAILABLE 房产变为 SOLD，但没有 owner，应报错
+        available_property = self.property_manager.find_property_by_id(1)
+        available_property.owner = None  # 确认没有 owner
         with self.assertRaises(ValueError):
             self.property_manager.update_status(1, PropertyStatus.SOLD)
 
     def test_search_properties(self):
         """测试搜索房产"""
-        results = self.property_manager.search_properties(price_range=(100000, 300000), property_type=PropertyType.APARTMENT)
+        # 查找价格在 100000 到 300000 之间，类型为 APARTMENT
+        results = self.property_manager.search_properties(
+            price_range=(100000, 300000),
+            property_type=PropertyType.APARTMENT
+        )
+        # property2 是 AVAILABLE，property3 是 SOLD（应该被排除）
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].property_ID, 2)
+
+        # 查找价格在 100000 到 300000 之间，不限制类型
+        results = self.property_manager.search_properties(
+            price_range=(100000, 300000)
+        )
         self.assertEqual(len(results), 2)
-        for property_obj in results:
-            self.assertTrue(100000 <= property_obj.price <= 300000)
-            self.assertEqual(property_obj.property_type, PropertyType.APARTMENT)
+        property_ids = [p.property_ID for p in results]
+        self.assertIn(1, property_ids)  # property1
+        self.assertIn(2, property_ids)  # property2
+
+        # 查找特定位置
+        results = self.property_manager.search_properties(location="456 Elm St")
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].property_ID, 2)
+
 
 if __name__ == "__main__":
     unittest.main()
