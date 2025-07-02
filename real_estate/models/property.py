@@ -24,11 +24,26 @@ class Property:
         self.property_type = property_type
         self.status = status
         self.owner = owner
+        self.views = 0
+        self.inquiries = 0
+
+    def add_view(self):
+        self.views += 1
+
+    def add_inquiry(self):
+        self.inquiries += 1
+
+    def reset_interest(self):
+        self.views = 0
+        self.inquiries = 0
 
     def __repr__(self):
         owner_str = self.owner if self.owner else "None"
+        features_str = '无'
+        if hasattr(self, 'features') and self.features:
+            features_str = ','.join(self.features)
         return (f"<Property {self.property_ID} | {self.address} | ${self.price:.2f} | "
-                f"{self.property_type.name} | {self.status.name} | Owner: {owner_str}>")
+                f"{self.property_type.name} | {self.status.name} | Owner: {owner_str} | Features: {features_str}>")
 
     def __eq__(self, other):
         if isinstance(other, Property):
@@ -38,4 +53,4 @@ class Property:
     def __lt__(self, other):
         if not isinstance(other, Property):
             raise TypeError("Cannot compare Property with non-Property object")
-        return self.property_ID < other.property_ID 
+        return self.property_ID < other.property_ID

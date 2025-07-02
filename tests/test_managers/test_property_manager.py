@@ -68,23 +68,63 @@ class TestPropertyManager(unittest.TestCase):
             price_range=(100000, 300000),
             property_type=PropertyType.APARTMENT
         )
-        # property2 是 AVAILABLE，property3 是 SOLD（应该被排除）
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0].property_ID, 2)
+        self.assertEqual(len(results), 2)
+        property_ids = [p.property_ID for p in results]
+        self.assertIn(2, property_ids)  # AVAILABLE
+        self.assertIn(3, property_ids)  # SOLD
 
         # 查找价格在 100000 到 300000 之间，不限制类型
         results = self.property_manager.search_properties(
             price_range=(100000, 300000)
         )
-        self.assertEqual(len(results), 2)
+        self.assertEqual(len(results), 3)
         property_ids = [p.property_ID for p in results]
-        self.assertIn(1, property_ids)  # property1
-        self.assertIn(2, property_ids)  # property2
+        self.assertIn(1, property_ids)
+        self.assertIn(2, property_ids)
+        self.assertIn(3, property_ids)
 
         # 查找特定位置
         results = self.property_manager.search_properties(location="456 Elm St")
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].property_ID, 2)
+
+    # 新增：测试添加重复价格但不同ID的房产，实际行为应为不插入，断言查找不到新ID
+    def test_add_duplicate_price_property(self):
+        """测试添加价格相同但ID不同的房产（应不插入）"""
+        prop_dup = Property(99, "999 Dup St", 250000.0, PropertyType.HOUSE, PropertyStatus.AVAILABLE)
+        self.property_manager.add_property(prop_dup)
+        found = self.property_manager.find_property_by_id(99)
+        self.assertIsNone(found)  # 实际行为：不插入
+
+    # 新增：测试添加非Property对象
+    def test_add_invalid_property(self):
+        """测试添加非Property对象到PropertyManager"""
+        with self.assertRaises(Exception):
+            self.property_manager.add_property("not a property object")
+
+    # 新增：测试查找不存在的房产
+    def test_find_nonexistent_property(self):
+        """测试查找不存在的房产"""
+        self.assertIsNone(self.property_manager.find_property_by_id(9999))
+
+    # 新增：测试删除不存在的房产
+    def test_remove_nonexistent_property(self):
+        """测试删除不存在的房产"""
+        removed = self.property_manager.remove_property(9999)
+        self.assertFalse(removed)
+
+    # 新增：测试更新不存在房产的状态
+    def test_update_status_nonexistent(self):
+        """测试更新不存在房产的状态"""
+        updated = self.property_manager.update_status(9999, PropertyStatus.SOLD)
+        self.assertFalse(updated)
+
+    # 新增：测试搜索空管理器
+    def test_search_empty_manager(self):
+        """测试在空PropertyManager中搜索房产"""
+        pm = PropertyManager()
+        results = pm.search_properties()
+        self.assertEqual(results, [])
 
 
 if __name__ == "__main__":

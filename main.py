@@ -1,9 +1,17 @@
 from real_estate.managers import ClientManager, PropertyManager
 from real_estate.utils.loader import load_dataset
+from PyQt5.QtWidgets import QApplication
+import sys
+from real_estate.gui.interface import RealEstateGUI
 
 def main():
+    # 指定数据文件的路径和文件名
+    data_dir = "datasets"  # 数据文件所在的目录
+    client_filename = "client_requests_dataset.csv"  # 客户数据文件名
+    property_filename = "real_estate_properties_dataset.csv"  # 房产数据文件名
+
     # 加载数据集
-    client_manager, property_manager = load_dataset()
+    client_manager, property_manager = load_dataset(data_dir, client_filename, property_filename)
 
     # 处理客户端请求
     while not client_manager.clients.is_empty():
@@ -32,6 +40,11 @@ def main():
             print(f"Client {client.client_ID} did not buy any property.")
             client_manager.remove_client(client.client_ID)  # 没买也移除
 
+def main():
+    app = QApplication(sys.argv)
+    gui = RealEstateGUI()
+    gui.show()
+    sys.exit(app.exec())
+
 if __name__ == "__main__":
     main()
-    

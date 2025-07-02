@@ -49,7 +49,24 @@ class ClientQueue:
             current = current.next
         return False
     
+    def move_front_to_rear(self):
+        if self.is_empty():
+            return
+        node = self.dequeue()
+        self.enqueue(node)
+
+    
     def peek(self):
         if not self.is_empty():
             return self.front.data
         return None
+    
+    def to_list(self):
+        """将队列中的所有客户转换为列表"""
+        clients = []
+        current = self.front
+        while current:
+            clients.append(current.data)
+            current = current.next
+        return clients
+    

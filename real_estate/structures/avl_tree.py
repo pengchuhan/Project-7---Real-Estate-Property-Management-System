@@ -155,3 +155,36 @@ class AVLTree:
             results.append(node.property)
         if price <= max_price:
             self._search_inorder(node.right, min_price, max_price, results)
+    
+    def display_horizontal(self, node=None, level=0):
+        if node is None:
+            node = self.root
+            if node is None:
+                print("(Empty Tree)")
+                return
+
+        if node.right:
+            self.display_horizontal(node.right, level + 1)
+
+        print('    ' * level + f'-> {node.key}')
+
+        if node.left:
+            self.display_horizontal(node.left, level + 1)
+    
+    def size(self):
+        def count_nodes(node):
+            if not node:
+                return 0
+            return 1 + count_nodes(node.left) + count_nodes(node.right)
+        return count_nodes(self.root)
+
+    def get_keys(self):
+        keys = []
+        def inorder(node):
+            if not node:
+                return
+            inorder(node.left)
+            keys.append(node.property.property_ID)
+            inorder(node.right)
+        inorder(self.root)
+        return keys

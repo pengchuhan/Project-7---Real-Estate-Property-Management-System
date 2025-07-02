@@ -48,9 +48,11 @@ real_estate_project/
 │   │   ├── __init__.py
 │   │   ├── property_manager.py
 │   │   └── client_manager.py
-│   └── utils/
-|       ├── __init__.py
-│       └── loader.py
+│   ├── utils/
+|   |   ├── __init__.py
+│   |   └── loader.py
+|   └── gui/
+│       └── interface.py
 ├── tests/
 │   ├── __init__.py
 │   ├── test_models/
@@ -65,8 +67,6 @@ real_estate_project/
 ├── datasets/
 │   ├── real_estate_properties_dataset.csv
 │   └── client_requests_dataset.csv
-├── gui/
-│   └── interface.py
 ├── main.py
 ├── README.md
 └── requirements.txt

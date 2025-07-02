@@ -3,7 +3,7 @@ from ..structures.avl_tree import AVLTree
 
 class PropertyManager:
     def __init__(self):
-        self.tree = AVLTree()  # 存储 Property ID，用于快速查找
+        self.tree = AVLTree()  # 存储 Property，按价格排序
 
     def add_property(self, property_obj):
         if not isinstance(property_obj, Property):
@@ -43,8 +43,8 @@ class PropertyManager:
             if min_price <= node.key <= max_price:
                 prop = node.property
                 if (property_type is None or prop.property_type == property_type) and \
-                   (location is None or prop.address == location) and \
-                   (prop.status == PropertyStatus.AVAILABLE):
+                   (location is None or prop.address == location):
+                    prop.add_view()  # 统计浏览量
                     results.append(prop)
             if node.key <= max_price:
                 inorder(node.right)
@@ -55,3 +55,23 @@ class PropertyManager:
     def find_property_by_id(self, property_id):
         node = self.tree.find_by_id(property_id)
         return node.property if node else None
+
+    def adjust_prices(self, high_threshold=10, low_threshold=2, increase_rate=0.05, decrease_rate=0.03):
+        """
+        根据房产的浏览量和问询量动态调整价格。
+        - 浏览量或问询量高于 high_threshold，涨价 increase_rate
+        - 浏览量和问询量低于 low_threshold，降价 decrease_rate
+        """
+        def inorder(node):
+            if not node:
+                return
+            inorder(node.left)
+            prop = node.property
+            if hasattr(prop, "views") and hasattr(prop, "inquiries"):
+                if prop.views >= high_threshold or prop.inquiries >= high_threshold:
+                    prop.price = round(prop.price * (1 + increase_rate), 2)
+                elif prop.views <= low_threshold and prop.inquiries <= low_threshold:
+                    prop.price = round(prop.price * (1 - decrease_rate), 2)
+                prop.reset_interest()
+            inorder(node.right)
+        inorder(self.tree.root)

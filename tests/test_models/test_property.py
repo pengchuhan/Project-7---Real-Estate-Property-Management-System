@@ -47,8 +47,8 @@ class TestProperty(unittest.TestCase):
 
     def test_property_repr(self):
         """测试 Property 类的 __repr__ 方法"""
-        expected_repr1 = "<Property 1 | 123 Main St | $250000.00 | HOUSE | AVAILABLE | Owner: None>"
-        expected_repr2 = "<Property 3 | 789 Oak St | $150000.00 | APARTMENT | SOLD | Owner: John Doe>"
+        expected_repr1 = "<Property 1 | 123 Main St | $250000.00 | HOUSE | AVAILABLE | Owner: None | Features: 无>"
+        expected_repr2 = "<Property 3 | 789 Oak St | $150000.00 | APARTMENT | SOLD | Owner: John Doe | Features: 无>"
         self.assertEqual(repr(self.property1), expected_repr1)
         self.assertEqual(repr(self.property2), expected_repr2)
 
