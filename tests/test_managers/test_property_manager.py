@@ -126,6 +126,31 @@ class TestPropertyManager(unittest.TestCase):
         results = pm.search_properties()
         self.assertEqual(results, [])
 
+    def test_adjust_prices(self):
+        """测试房产动态调价 adjust_prices"""
+        # 设置不同浏览量和问询量
+        self.property1.views = 15   # 超过high_threshold，应该涨价
+        self.property1.inquiries = 0
+        self.property2.views = 1    # 低于low_threshold，应该降价
+        self.property2.inquiries = 1
+        self.property3.views = 5    # 在正常区间，不变
+        self.property3.inquiries = 5
+
+        old_price1 = self.property1.price
+        old_price2 = self.property2.price
+        old_price3 = self.property3.price
+
+        self.property_manager.adjust_prices(high_threshold=10, low_threshold=2, increase_rate=0.05, decrease_rate=0.03)
+
+        # property1应该涨价，property2应该降价，property3不变
+        self.assertGreater(self.property1.price, old_price1)
+        self.assertLess(self.property2.price, old_price2)
+        self.assertEqual(self.property3.price, old_price3)
+        # views和inquiries会被reset
+        self.assertEqual(self.property1.views, 0)
+        self.assertEqual(self.property2.inquiries, 0)
+
+
 
 if __name__ == "__main__":
     unittest.main()

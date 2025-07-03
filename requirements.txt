@@ -1,1 +1,3 @@
-# Standard library, no need to install any additional packages
+#PyQt5>=5.15.0
+#matplotlib>=3.0.0
+

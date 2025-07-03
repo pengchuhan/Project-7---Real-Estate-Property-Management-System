@@ -56,6 +56,45 @@ class TestClientManager(unittest.TestCase):
         removed_non_exist = self.client_manager.remove_client(999)
         self.assertFalse(removed_non_exist)
 
+    def test_remove_head_client(self):
+        # 默认第一个就是head
+        result = self.client_manager.remove_client(self.client1.client_ID)
+        self.assertTrue(result)
+        # 现在head应变成client2
+        self.assertEqual(self.client_manager.clients.front.data, self.client2)
+
+    def test_remove_tail_client(self):
+        # 先删掉1、2，只剩3
+        self.client_manager.remove_client(self.client1.client_ID)
+        self.client_manager.remove_client(self.client2.client_ID)
+        # 此时队列只剩最后一个
+        result = self.client_manager.remove_client(self.client3.client_ID)
+        self.assertTrue(result)
+        self.assertIsNone(self.client_manager.clients.front)
+        self.assertIsNone(self.client_manager.clients.rear)
+
+    def test_remove_from_empty_queue(self):
+        self.client_manager.remove_client(self.client1.client_ID)
+        self.client_manager.remove_client(self.client2.client_ID)
+        self.client_manager.remove_client(self.client3.client_ID)
+        # 队列空了
+        result = self.client_manager.remove_client(999)
+        self.assertFalse(result)
+
+    def test_remove_tail_client(self):
+        # 队列：client1 -> client2 -> client3
+        # 删除 client3（尾节点）
+        self.client_manager.remove_client(self.client3.client_ID)
+        self.assertIs(self.client_manager.clients.rear.data, self.client2)
+        # 再删 client2
+        self.client_manager.remove_client(self.client2.client_ID)
+        self.assertIs(self.client_manager.clients.rear.data, self.client1)
+        # 再删 client1
+        self.client_manager.remove_client(self.client1.client_ID)
+        self.assertIsNone(self.client_manager.clients.rear)
+
+
+
     def test_match_properties(self):
         """测试匹配符合预算的房产"""
         properties = self.property_manager.search_properties()
@@ -85,6 +124,30 @@ class TestClientManager(unittest.TestCase):
         else:
             self.assertTrue(True)  # 没匹配项，也OK
 
+    def test_match_properties_advanced(self):
+        client = Client(10, "Test", "test@test.com", 350000, PropertyType.HOUSE, preferred_neighborhoods=["Main"], preferred_features=["balcony"])
+        # 假定 property1 地址带 Main，且特征带 balcony
+        self.property1.features = ["balcony"]
+        self.property1.status = PropertyStatus.AVAILABLE
+
+        # 不在预算范围的房子
+        expensive_property = Property(99, "Rich St", 1000000, PropertyType.HOUSE, PropertyStatus.AVAILABLE)
+        cheap_property = Property(100, "Main St", 200000, PropertyType.HOUSE, PropertyStatus.AVAILABLE)
+        cheap_property.features = ["balcony"]
+        
+        props = [self.property1, self.property2, expensive_property, cheap_property]
+        results = self.client_manager.match_properties_advanced(props, client)
+        
+        # 必须按分数从高到低
+        scores = [score for score, _ in results]
+        self.assertTrue(all(scores[i] >= scores[i+1] for i in range(len(scores)-1)))
+        # 不在预算范围的房子不会出现
+        self.assertNotIn(expensive_property, [p for _, p in results])
+        # 只要分数大于0的都出现
+        for score, prop in results:
+            self.assertGreater(score, 0)
+
+
 
     def test_buy_property(self):
         """测试客户端购买房产"""
@@ -104,6 +167,27 @@ class TestClientManager(unittest.TestCase):
         # 尝试购买预算不足的房产
         with self.assertRaises(ValueError):
             self.client_manager.buy_property(self.client3, self.property4.property_ID, self.property_manager)
+
+    def test_buy_property_auto_select(self):
+        # 传 property_id=None，会自动选当前预算下最便宜且类型对的
+        client = Client(20, "Auto Buyer", "auto@buyer.com", 400000, PropertyType.HOUSE)
+        self.client_manager.add_client(client)
+        property_obj = self.client_manager.buy_property(client, None, self.property_manager)
+        self.assertEqual(property_obj.property_type, PropertyType.HOUSE)
+        self.assertLessEqual(property_obj.price, 400000)
+        self.assertEqual(property_obj.status, PropertyStatus.SOLD)
+        self.assertEqual(property_obj.owner, client.name)
+
+    def test_buy_property_no_client(self):
+        with self.assertRaises(ValueError):
+            self.client_manager.buy_property(None, self.property1.property_ID, self.property_manager)
+
+    def test_buy_property_property_not_found(self):
+        client = Client(123, "Ghost", "ghost@mail.com", 999999, PropertyType.HOUSE)
+        with self.assertRaises(ValueError):
+            self.client_manager.buy_property(client, 9999, self.property_manager)  # id不存在
+
+
 
     def test_peek(self):
         """测试peek方法"""

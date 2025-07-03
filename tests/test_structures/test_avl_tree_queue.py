@@ -55,9 +55,95 @@ class TestAVLTree(unittest.TestCase):
 
         self.assertTrue(is_balanced(self.tree.root))
 
+    def test_insert_ll_rotation(self):
+        tree = AVLTree()
+        tree.insert_key(30, "A")
+        tree.insert_key(20, "B")
+        tree.insert_key(10, "C")  # LL型，触发右旋
+        self.assertEqual(tree.root.key, 20)
+
+    def test_insert_rr_rotation(self):
+        tree = AVLTree()
+        tree.insert_key(10, "A")
+        tree.insert_key(20, "B")
+        tree.insert_key(30, "C")  # RR型，触发左旋
+        self.assertEqual(tree.root.key, 20)
+
+
+    def test_delete_node_with_two_children(self):
+        tree = AVLTree()
+        tree.insert_key(20, "A")
+        tree.insert_key(10, "B")
+        tree.insert_key(30, "C")
+        tree.insert_key(25, "D")
+        tree.delete(tree.root, 20)  # 根节点有两个孩子
+        self.assertNotEqual(tree.root.key, 20)
+
+    
+    def test_find_by_id(self):
+        tree = AVLTree()
+        node1 = Property(1, "a", 100, PropertyType.HOUSE, PropertyStatus.AVAILABLE)
+        node2 = Property(2, "b", 200, PropertyType.HOUSE, PropertyStatus.AVAILABLE)
+        tree.insert_key(100, node1)
+        tree.insert_key(200, node2)
+        found = tree._find_by_id(tree.root, 2)
+        self.assertIsNotNone(found)
+        not_found = tree._find_by_id(tree.root, 999)
+        self.assertIsNone(not_found)
+
+    def test_search_by_price_range(self):
+        tree = AVLTree()
+        node1 = Property(1, "a", 100, PropertyType.HOUSE, PropertyStatus.AVAILABLE)
+        node2 = Property(2, "b", 200, PropertyType.HOUSE, PropertyStatus.AVAILABLE)
+        tree.insert_key(100, node1)
+        tree.insert_key(200, node2)
+        results = tree.search_by_price_range(50, 150)
+        self.assertIn(node1, results)
+        self.assertNotIn(node2, results)
+
+    def test_insert_duplicate_key(self):
+        tree = AVLTree()
+        prop1 = self.create_fake_property(101, 10)
+        prop2 = self.create_fake_property(102, 10)
+        tree.insert_key((10, 101), prop1)
+        tree.insert_key((10, 101), prop2)  # duplicate, should be ignored
+        # 只会有一个节点
+        self.assertEqual(tree.size(), 1)
+        self.assertEqual(tree.root.property, prop1)
+
+    def test_delete_nonexistent_key(self):
+        tree = AVLTree()
+        prop = self.create_fake_property(201, 20)
+        tree.insert_key((20, 201), prop)
+        # 删除一个不存在的key，树不变
+        tree.delete_key((999, 999))
+        self.assertEqual(tree.size(), 1)
+        self.assertEqual(tree.root.property, prop)
+        
+    def test_queue_singleton_pop(self):
+        q = ClientQueue()
+        c = Client(99, "Single", "s@x.com", 1000)
+        q.enqueue(c)
+        item = q.dequeue()
+        self.assertEqual(item, c)
+        self.assertTrue(q.is_empty())
+
+    def test_queue_peek_empty(self):
+        q = ClientQueue()
+        self.assertIsNone(q.peek())
+
+    def test_tree_size(self):
+        tree = AVLTree()
+        self.assertEqual(tree.size(), 0)
+        tree.insert_key((1,1), self.create_fake_property(1,1))
+        self.assertEqual(tree.size(), 1)
+
+
+
 
 if __name__ == "__main__":
     unittest.main()
+
 class TestClientQueue(unittest.TestCase):
     def setUp(self):
         """设置 ClientQueue 测试用例的初始数据"""
@@ -86,6 +172,43 @@ class TestClientQueue(unittest.TestCase):
         self.queue.enqueue(self.client1)
         self.queue.enqueue(self.client1)  # 尝试添加重复客户端
         self.assertEqual(self.queue.size(), 1)  # 队列大小应该仍然是1
+
+    def test_dequeue_empty(self):
+        """测试空队列dequeue返回None"""
+        self.assertIsNone(self.queue.dequeue())
+
+    def test_peek(self):
+        """测试peek返回队首和空队列"""
+        # 空队列
+        self.assertIsNone(self.queue.peek())
+        # 非空队列
+        self.queue.enqueue(self.client1)
+        self.assertEqual(self.queue.peek(), self.client1)
+
+    def test_contains(self):
+        """测试in运算符"""
+        self.queue.enqueue(self.client1)
+        self.assertIn(self.client1, self.queue)
+        self.assertNotIn(self.client2, self.queue)
+
+    def test_move_front_to_rear_empty_and_single(self):
+        """测试move_front_to_rear空队列和单元素队列"""
+        # 空队列应无异常
+        self.queue.move_front_to_rear()
+        self.assertTrue(self.queue.is_empty())
+        # 单元素时move，内容不变
+        self.queue.enqueue(self.client1)
+        self.queue.move_front_to_rear()
+        self.assertEqual(self.queue.size(), 1)
+        self.assertEqual(self.queue.peek(), self.client1)
+
+    def test_to_list(self):
+        """测试to_list方法"""
+        self.assertEqual(self.queue.to_list(), [])
+        self.queue.enqueue(self.client1)
+        self.queue.enqueue(self.client2)
+        self.assertEqual(self.queue.to_list(), [self.client1, self.client2])
+
 
 if __name__ == "__main__":
     unittest.main()

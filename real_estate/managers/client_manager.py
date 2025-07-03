@@ -62,6 +62,9 @@ class ClientManager:
         """
         results = []
         for prop in properties:
+            # 如果价格超过预算，不计分，直接跳过
+            if prop.price > client.budget:
+                continue
             score = 0
             # 预算匹配
             if prop.price <= client.budget:

@@ -89,6 +89,35 @@ class TestLoader(unittest.TestCase):
         self.assertIn(250000.0, keys)
         self.assertIn(500000.0, keys)
 
+    def test_clients_file_not_found(self):
+        """测试找不到客户端文件抛异常"""
+        # 删除客户端文件
+        os.remove(self.clients_file)
+        with self.assertRaises(FileNotFoundError):
+            load_dataset(self.test_dir, "test_client.csv", "test_property.csv")
+
+    def test_properties_file_not_found(self):
+        """测试找不到房产文件抛异常"""
+        os.remove(self.properties_file)
+        with self.assertRaises(FileNotFoundError):
+            load_dataset(self.test_dir, "test_client.csv", "test_property.csv")
+
+    def test_clients_file_bad_format(self):
+        """测试客户端文件格式错误抛异常"""
+        with open(self.clients_file, "w", encoding='utf-8') as f:
+            f.write("WRONG HEADER\n")
+            f.write("bad,data\n")
+        with self.assertRaises(ValueError):
+            load_dataset(self.test_dir, "test_client.csv", "test_property.csv")
+
+    def test_properties_file_bad_format(self):
+        """测试房产文件格式错误抛异常"""
+        with open(self.properties_file, "w", encoding='utf-8') as f:
+            f.write("WRONG HEADER\n")
+            f.write("bad,data\n")
+        with self.assertRaises(ValueError):
+            load_dataset(self.test_dir, "test_client.csv", "test_property.csv")
+
 
 if __name__ == "__main__":
     unittest.main()

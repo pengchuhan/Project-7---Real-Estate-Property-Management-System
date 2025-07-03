@@ -177,14 +177,3 @@ class AVLTree:
                 return 0
             return 1 + count_nodes(node.left) + count_nodes(node.right)
         return count_nodes(self.root)
-
-    def get_keys(self):
-        keys = []
-        def inorder(node):
-            if not node:
-                return
-            inorder(node.left)
-            keys.append(node.property.property_ID)
-            inorder(node.right)
-        inorder(self.root)
-        return keys
