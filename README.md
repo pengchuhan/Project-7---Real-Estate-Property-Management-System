@@ -206,7 +206,7 @@ pip install -r requirements.txt
 * Place your property and client CSV files under the `datasets/` directory.
 * The app will auto-load on startup.
 
----
+
 
 ## 6. Optimization & Future Work
 
